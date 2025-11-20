@@ -6,7 +6,22 @@ import math
 import torch
 import numpy as np
 from torch.optim import SGD, Adam
-from tensorboardX import SummaryWriter
+
+try:
+    from tensorboardX import SummaryWriter
+except Exception:
+    # Fallback dummy SummaryWriter for environments where tensorboardX/protobuf clash
+    class SummaryWriter:
+        def __init__(self, *args, **kwargs):
+            pass
+        def add_scalar(self, *args, **kwargs):
+            pass
+        def add_image(self, *args, **kwargs):
+            pass
+        def add_histogram(self, *args, **kwargs):
+            pass
+        def close(self):
+            pass
 
 
 class Averager():

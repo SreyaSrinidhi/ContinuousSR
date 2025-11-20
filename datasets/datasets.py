@@ -17,5 +17,9 @@ def make(dataset_spec, args=None):
         dataset_args.update(args)
     else:
         dataset_args = dataset_spec['args']
+    for k, v in dataset_args.items():
+        if isinstance(v, dict) and 'name' in v and v['name'] in datasets:
+            # If it is, recursively call 'make' on it.
+            dataset_args[k] = make(v)
     dataset = datasets[dataset_spec['name']](**dataset_args)
     return dataset

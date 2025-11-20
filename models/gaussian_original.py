@@ -214,48 +214,27 @@ class ContinuousGaussian(nn.Module):
 
         window_size = 1  # Window size for Gaussian position adjustments
         pred = []  # List to store predictions
-        
-	        # Get correct feature shapes
-        bs, c_feat, h_feat, w_feat = self.feat.shape
-        num_kernels = h_feat * w_feat # This is the number of Gaussians, e.g., 17*17=289
+        bs, _, _, _ = feat.shape  # Batch size and feature dimensions
 
-        # Flatten features from [B, C, H_feat, W_feat] to [B * H_feat * W_feat, C_feat]
-        # This is the correct way to feed the MLPs.
-        # e.g., [1, 256, 17, 17] -> [289, 256]
-        feat_flat = self.feat.reshape(bs, c_feat, -1).permute(0, 2, 1).reshape(bs * num_kernels, c_feat)
+        # Process features for color prediction
+        para_c = self.feat.reshape(bs, -1, lr_h * lr_w * 4).permute(1, 0, 2)
+        color = self.mlp(para_c.reshape(-1, bs * lr_h * lr_w * 4).permute(1, 0))
+        color = color.reshape(bs, lr_h * lr_w * 4, -1)
 
-        # 1. CGM (Color) Prediction
-        # The buggy code used lr_h and lr_w, resulting in shape [4624, 16]
-        # This correct line uses feat_flat, resulting in shape [289, 256] (for example)
-        color = self.mlp(feat_flat) # Input is [289, 256], MLP in_dim is 256. This works.
-        color = color.reshape(bs, num_kernels, 3) # [B, num_kernels, 3]
+        # Process features for Gaussian convariance parameter estimation
+        para_c = self.leaky_relu(self.feat)
+        para = self.conv1(para_c)
+        vector = self.mlp_vector(self.gau_dict.to(para.device)) # Transform Gaussian covariance dictionary to increase dimensions
+        para = para.reshape(bs, -1, lr_h * lr_w * 4).permute(1, 0, 2).reshape(-1, bs * lr_h * lr_w * 4)
+        para = vector @ para  # This calculates the similarity between para and each element in the dictionary
+        para = torch.softmax(para, dim=0)  # Normalize the similarity scores to produce weights using softmax
+        para = para.permute(1, 0) @ self.gau_dict.to(para.device) # Compute the weighted sum of dictionary elements to get the final covariance
+        para = para.reshape(bs, lr_h * lr_w * 4, -1)
 
-        # 2. DDCW (Covariance) Prediction
-        # The buggy code re-used the 'para_c' variable, which was wrong
-        feat_conv = self.leaky_relu(self.conv1(self.feat)) # [B, 512, H_feat, W_feat]
-        
-        # Flatten the conv features
-        # e.g., [1, 512, 17, 17] -> [289, 512]
-        feat_conv_flat = feat_conv.reshape(bs, 512, -1).permute(0, 2, 1).reshape(bs * num_kernels, 512)
-        
-        # Get the device-correct gaussian dictionary
-        gau_dict_device = self.gau_dict.to(feat_conv_flat.device)
+        # Process features for offset prediction
+        offset = self.mlp_offset(para_c.reshape(-1, bs * lr_h * lr_w * 4).permute(1, 0))
+        offset = torch.tanh(offset).reshape(bs, lr_h * lr_w * 4, -1)
 
-        vector = self.mlp_vector(gau_dict_device) # [730, 512]
-
-        # [B*num_kernels, 512] @ [512, 730] -> [B*num_kernels, 730]
-        para_weights = feat_conv_flat @ vector.t()
-        para_weights = torch.softmax(para_weights, dim=-1) # [B*num_kernels, 730]
-        
-        # [B*num_kernels, 730] @ [730, 3] -> [B*num_kernels, 3]
-        para = para_weights @ gau_dict_device 
-        para = para.reshape(bs, num_kernels, 3) # [B, num_kernels, 3]
-
-        # 3. APD (Position) Prediction
-        # The buggy code used the wrong flattened tensor
-        offset = self.mlp_offset(feat_flat) # NEW CORRECT LINE (Input is [289, 256])
-        offset = torch.tanh(offset).reshape(bs, num_kernels, 2)
-	
         # Generate output predictions for each image in the batch
         for i in range(bs):
             offset_ = offset[i, :, :].squeeze(0)
@@ -263,7 +242,7 @@ class ContinuousGaussian(nn.Module):
             para_ = para[i, :, :].squeeze(0)
 
             # Generate coordinate grid for the high-resolution image
-            get_xyz = torch.tensor(get_coord(w_feat, h_feat)).reshape(h_feat, w_feat, 2).cuda() # Use h_feat, w_feat
+            get_xyz = torch.tensor(get_coord(lr_h * 2, lr_w * 2)).reshape(lr_h * 2, lr_w * 2, 2).cuda()
             get_xyz = get_xyz.reshape(-1, 2)
 
             # Adjust coordinates using offsets

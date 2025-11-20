@@ -1,0 +1,257 @@
+absl-py==2.2.1
+addict==2.4.0
+alabaster @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/alabaster/alabaster-0.7.12
+anyio==3.6.2
+appdirs @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/appdirs/appdirs-1.4.4
+argon2-cffi==21.3.0
+argon2-cffi-bindings==21.2.0
+asn1crypto @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/asn1crypto/asn1crypto-1.5.1
+astroid==2.11.7
+asttokens==3.0.1
+astunparse==1.6.3
+atomicwrites==1.4.1
+attrs==22.1.0
+Babel==2.11.0
+backports.entry-points-selectable @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/backportsentry_points_selectable/backports.entry_points_selectable-1.1.1
+backports.functools-lru-cache @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/backportsfunctools_lru_cache/backports.functools_lru_cache-1.6.4
+backports.tarfile==1.2.0
+basicsr==1.3.4.9
+bcrypt @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/bcrypt/bcrypt-3.2.2
+beautifulsoup4==4.14.2
+beniget @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/beniget/beniget-0.4.1
+bitstring @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/bitstring/bitstring-3.1.9
+black==22.3.0
+bleach==5.0.1
+blist @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/blist/blist-1.3.6
+Bottleneck @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/Bottleneck/Bottleneck-1.3.4
+brotlipy==0.7.0
+build==1.2.2.post1
+CacheControl @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/CacheControl/CacheControl-0.12.11
+cachy @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/cachy/cachy-0.3.0
+certifi==2025.11.12
+cffi==2.0.0
+chardet @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/chardet/chardet-4.0.0
+charset-normalizer==3.4.4
+cleo @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/cleo-0.8.1-py2.py3-none-any.whl
+click==8.1.8
+clikit @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/clikit-0.6.2-py2.py3-none-any.whl
+colorama==0.4.6
+crashtest @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/crashtest-0.3.1-py3-none-any.whl
+cryptography==45.0.7
+Cython @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/Cython/Cython-0.29.28
+deap @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/deap/deap-1.3.1
+debugpy==1.6.3
+decorator==5.2.1
+defusedxml==0.7.1
+dill==0.3.9
+distlib @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/distlib/distlib-0.3.4
+docopt @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/docopt/docopt-0.6.2
+docutils==0.21.2
+ecdsa @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/ecdsa/ecdsa-0.17.0
+editables @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/editables/editables-0.3
+einops==0.8.1
+entrypoints==0.4
+exceptiongroup==1.0.0
+execnet==2.1.1
+executing==2.2.1
+expecttest @ file:///tmp/job.107477.hpc/expecttest/0.1.3/GCCcore-11.3.0/expecttest-0.1.3
+fastjsonschema==2.16.2
+filelock==3.19.1
+flit @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/flit/flit-3.7.1
+flit_core @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/flitcore/flit_core-3.7.1
+fsspec==2025.3.0
+future @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/future/future-0.18.2
+gast @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/gast/gast-0.5.3
+glob2 @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/glob2/glob2-0.7
+gmpy2 @ file:///tmp/job.836552.hpc/gmpy2/2.1.2/GCC-11.3.0/gmpy2-2.1.2
+grpcio==1.71.0
+-e git+https://github.com/XingtongGe/gsplat.git@bcca3ecae966a052e3bf8dd1ff9910cf7b8f851d#egg=gsplat
+html5lib @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/html5lib/html5lib-1.1
+huggingface-hub==0.29.3
+hypothesis==6.56.4
+id==1.5.0
+idna==3.11
+imageio==2.37.0
+imagesize @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/imagesize/imagesize-1.3.0
+importlib-metadata==5.0.0
+importlib-resources @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/importlib_resources/importlib_resources-5.7.1
+iniconfig==2.1.0
+intervaltree @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/intervaltree/intervaltree-3.1.0
+intreehooks @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/intreehooks/intreehooks-1.0
+ipaddress @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/ipaddress/ipaddress-1.0.23
+ipykernel==6.17.1
+ipython==8.18.1
+ipython-genutils==0.2.0
+isort==5.10.1
+jaraco.classes==3.4.0
+jaraco.context==6.0.1
+jaraco.functools==4.1.0
+jaxtyping==0.2.36
+jedi==0.19.2
+jeepney==0.9.0
+Jinja2 @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/Jinja2/Jinja2-3.1.2
+joblib @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/joblib/joblib-1.1.0
+json5==0.9.10
+jsonschema==4.17.0
+jupyter-server==1.23.2
+jupyter_client==7.4.7
+jupyter_core==5.0.0
+jupyterlab==3.5.0
+jupyterlab-pygments==0.2.2
+jupyterlab_server==2.16.3
+keyring==25.6.0
+keyrings.alt @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/keyringsalt/keyrings.alt-4.1.0
+lazy-object-proxy==1.10.0
+lazy_loader==0.4
+liac-arff @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/liacarff/liac-arff-2.5.0
+lmdb==1.6.2
+lockfile @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/lockfile/lockfile-0.12.2
+Markdown==3.7
+markdown-it-py==3.0.0
+MarkupSafe==3.0.2
+matplotlib-inline==0.2.1
+mccabe==0.7.0
+mdurl==0.1.2
+mistune==2.0.4
+mock @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/mock/mock-4.0.3
+more-itertools==10.6.0
+mpi4py @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/mpi4py/mpi4py-3.1.3
+mpmath @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/mpmath/mpmath-1.2.1
+msgpack @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/msgpack/msgpack-1.0.3
+mypy-extensions==1.0.0
+nbclassic==0.4.8
+nbclient==0.7.0
+nbconvert==7.2.5
+nbformat==5.7.0
+nest-asyncio==1.5.6
+netaddr @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/netaddr/netaddr-0.8.0
+netifaces @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/netifaces/netifaces-0.11.0
+networkx @ file:///tmp/stm/networkx/2.8.4/foss-2022a/networkx-2.8.4
+nh3==0.2.21
+ninja==1.11.1.4
+notebook==6.5.2
+notebook_shim==0.2.2
+numexpr @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/numexpr/numexpr-2.8.1
+numpy @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/numpy/numpy-1.22.3
+nvidia-cublas-cu11==11.10.3.66
+nvidia-cuda-nvrtc-cu11==11.7.99
+nvidia-cuda-runtime-cu11==11.7.99
+nvidia-cudnn-cu11==8.5.0.96
+opencv-python==4.11.0.86
+packaging==24.2
+pandas @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/pandas/pandas-1.4.2
+pandocfilters==1.5.0
+paramiko @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/paramiko/paramiko-2.10.4
+parso==0.8.5
+pastel @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/pastel-0.2.1-py2.py3-none-any.whl
+pathlib2 @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pathlib2/pathlib2-2.3.7.post1
+pathspec==0.12.1
+pbr @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pbr/pbr-5.8.1
+pexpect @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pexpect/pexpect-4.8.0
+Pillow @ file:///tmp/job.66211.hpc/Pillow/9.1.1/GCCcore-11.3.0/Pillow-9.1.1
+pkginfo @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pkginfo/pkginfo-1.8.2
+platformdirs==4.3.7
+pluggy==1.5.0
+ply @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/ply/ply-3.11
+poetry @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/poetry/poetry-1.1.13
+poetry-core @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/poetrycore/poetry-core-1.0.8
+prometheus-client==0.15.0
+prompt_toolkit==3.0.52
+protobuf @ file:///tmp/job.107477.hpc/protobufpython/3.19.4/GCCcore-11.3.0/protobuf-3.19.4
+psutil==7.1.3
+ptyprocess @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/ptyprocess-0.7.0-py2.py3-none-any.whl
+pure_eval==0.2.3
+py @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/py/py-1.11.0
+py-expression-eval @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/py_expression_eval/py_expression_eval-0.3.14
+pyasn1 @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pyasn1/pyasn1-0.4.8
+pybind11 @ file:///tmp/job.43504.hpc/pybind11/2.9.2/GCCcore-11.3.0/pybind11-2.9.2
+pycparser==2.23
+pycrypto @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pycrypto/pycrypto-2.6.1
+Pygments==2.19.1
+pylev @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pylev/pylev-1.4.0
+pylint==2.13.4
+PyNaCl @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/PyNaCl/PyNaCl-1.5.0
+pyparsing==3.0.9
+pyproject_hooks==1.2.0
+pyrsistent==0.19.2
+pytest @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pytest/pytest-7.1.2
+pytest-forked==1.6.0
+pytest-xdist==2.5.0
+python-dateutil @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pythondateutil/python-dateutil-2.8.2
+pythran @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/pythran/pythran-0.11.0
+pytoml @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/pytoml/pytoml-0.1.21
+pytz==2025.2
+PyYAML @ file:///tmp/job.107477.hpc/PyYAML/6.0/GCCcore-11.3.0/PyYAML-6.0
+pyzmq==24.0.1
+readme_renderer==44.0
+regex @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/regex/regex-2022.4.24
+requests==2.32.5
+requests-toolbelt==1.0.0
+rfc3986==2.0.0
+rich==13.9.4
+safetensors==0.5.3
+scandir @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/scandir/scandir-1.10.0
+scikit-image==0.24.0
+SciPy @ file:///tmp/job.43504.hpc/SciPybundle/2022.05/foss-2022a/scipy/scipy-1.8.1
+SecretStorage==3.3.3
+semantic-version @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/semantic_version/semantic_version-2.9.0
+Send2Trash==1.8.0
+setuptools-rust @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/setuptoolsrust/setuptools-rust-1.3.0
+setuptools-scm @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/setuptools_scm/setuptools_scm-6.4.2
+shellingham @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/shellingham/shellingham-1.4.0
+simplegeneric @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/simplegeneric/simplegeneric-0.8.1
+simplejson @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/simplejson/simplejson-3.17.6
+six==1.17.0
+sniffio==1.3.0
+snowballstemmer @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/snowballstemmer/snowballstemmer-2.2.0
+sortedcontainers @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sortedcontainers/sortedcontainers-2.4.0
+soupsieve==2.8
+Sphinx @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/Sphinx/Sphinx-4.5.0
+sphinx-bootstrap-theme @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxbootstraptheme/sphinx-bootstrap-theme-0.8.1
+sphinxcontrib-applehelp @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribapplehelp/sphinxcontrib-applehelp-1.0.2
+sphinxcontrib-devhelp @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribdevhelp/sphinxcontrib-devhelp-1.0.2
+sphinxcontrib-htmlhelp @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribhtmlhelp/sphinxcontrib-htmlhelp-2.0.0
+sphinxcontrib-jsmath @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribjsmath/sphinxcontrib-jsmath-1.0.1
+sphinxcontrib-qthelp @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribqthelp/sphinxcontrib-qthelp-1.0.3
+sphinxcontrib-serializinghtml @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribserializinghtml/sphinxcontrib-serializinghtml-1.1.5
+sphinxcontrib-websupport @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/sphinxcontribwebsupport/sphinxcontrib-websupport-1.2.4
+stack-data==0.6.3
+sympy @ file:///tmp/job.836552.hpc/sympy/1.10.1/foss-2022a/sympy-1.10.1
+tabulate @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/tabulate/tabulate-0.8.9
+tb-nightly==2.20.0a20250329
+tensorboard-data-server==0.7.2
+tensorboardX==2.6.2.2
+terminado==0.17.0
+threadpoolctl @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/threadpoolctl/threadpoolctl-3.1.0
+tifffile==2024.8.30
+timm==1.0.15
+tinycss2==1.2.1
+tokenize_rt==6.1.0
+toml @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/toml/toml-0.10.2
+tomli @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/tomli/tomli-2.0.1
+tomli_w @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/tomli_w/tomli_w-1.0.0
+tomlkit @ file:///usr/local/easybuild_allnodes/sources/p/Python/extensions/tomlkit-0.10.2-py3-none-any.whl
+torch==2.1.2
+torchprofile==0.0.4
+tornado==6.2
+tqdm==4.67.1
+traitlets==5.5.0
+triton==3.1.0
+twine==6.1.0
+typeguard==4.4.2
+types-dataclasses==0.6.6
+typing_extensions @ file:///tmp/job.836552.hpc/typingextensions/4.3.0/GCCcore-11.3.0/typing_extensions-4.3.0
+ujson @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/ujson/ujson-5.2.0
+urllib3==2.5.0
+virtualenv @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/virtualenv/virtualenv-20.14.1
+wadler_lindig==0.1.7
+wcwidth==0.2.14
+webencodings @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/webencodings/webencodings-0.5.1
+websocket-client==1.4.2
+Werkzeug==3.1.3
+wrapt==1.17.2
+xlrd @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/xlrd/xlrd-2.0.1
+yapf==0.43.0
+z3-solver @ file:///tmp/job.836552.hpc/Z3/4.10.2/GCCcore-11.3.0-Python-3.10.4/z3solver/z3-solver-4.10.2.0
+zipfile36 @ file:///tmp/job.41047.hpc/Python/3.10.4/GCCcore-11.3.0/zipfile36/zipfile36-0.1.3
+zipp==3.10.0

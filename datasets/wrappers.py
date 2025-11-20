@@ -158,6 +158,9 @@ class SRImplicitDownsampled(Dataset):
             h_lr = math.floor(self.inp_size / s + 1e-9)
             w_lr = math.floor(self.inp_size / s + 1e-9)
             
+            h_lr = h_lr - (h_lr % 2)
+            w_lr = w_lr - (w_lr % 2)
+
             w_hr = round(w_lr * s)
             h_hr = round(h_lr * s)
             x0 = random.randint(0, img.shape[-2] - h_hr)
