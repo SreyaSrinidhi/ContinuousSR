@@ -108,7 +108,6 @@ def get_coord(width, height):
     return coordinates
 
 
-
 @register('continuous-gaussian')
 class ContinuousGaussian(nn.Module):
     """A module that applies 2D Gaussian splatting to input features."""
@@ -154,11 +153,35 @@ class ContinuousGaussian(nn.Module):
         self.mlp_offset = models.make(mlp_spec)
         
         # Initialize pre-defined Gaussian convariance parameter dictionaries
-        cho1 = torch.tensor([0, 0.41, 0.62, 0.98, 1.13, 1.29, 1.64, 1.85, 2.36]).cuda()
-        cho2 = torch.tensor([-0.86, -0.36, -0.16, 0.19, 0.34, 0.49, 0.84, 1.04, 1.54]).cuda()
-        cho3 = torch.tensor([0, 0.33, 0.53, 0.88, 1.03, 1.18, 1.53, 1.73, 2.23]).cuda()
-        self.gau_dict = torch.tensor(list(product(cho1, cho2, cho3))).cuda()
-        self.gau_dict = torch.cat((self.gau_dict, torch.zeros(1, 3).cuda()), dim=0)  # Add zeros
+        cho1 = torch.tensor([0, 0.41, 0.62, 0.98, 1.13, 1.29, 1.64, 1.85, 2.36])
+        cho2 = torch.tensor([-0.86, -0.36, -0.16, 0.19, 0.34, 0.49, 0.84, 1.04, 1.54])
+        cho3 = torch.tensor([0, 0.33, 0.53, 0.88, 1.03, 1.18, 1.53, 1.73, 2.23])
+        self.gau_dict = torch.tensor(list(product(cho1, cho2, cho3)))
+        self.gau_dict = torch.cat((self.gau_dict, torch.zeros(1, 3)), dim=0)  # Add zeros
+
+        # Define SGS covariance head
+        self.num_sgs_kernels = 100  # Number of kernels in the bank (this can be tuned)
+        # Learnable bank of (sigma_x, sigma_y, rho, opacity)
+        sigma_x, sigma_y = torch.meshgrid(
+            torch.linspace(0.2, 3.0, 10), 
+            torch.linspace(0.2, 3.0, 10)
+        )
+        sigma_x = sigma_x.reshape(-1)[:self.num_sgs_kernels]
+        sigma_y = sigma_y.reshape(-1)[:self.num_sgs_kernels]
+
+        self.sgs_sigma_x = nn.Parameter(sigma_x)                        
+        self.sgs_sigma_y = nn.Parameter(sigma_y)                        
+        self.sgs_rho = nn.Parameter(torch.zeros(self.num_sgs_kernels))  
+        self.sgs_opacity = nn.Parameter(torch.sigmoid(
+            torch.ones(self.num_sgs_kernels)
+        ))  
+
+        # kernel-selection logits head (SGS classifier over kernels)
+        # input channels = 256 (same as feature channels)
+        self.sgs_logits_head = nn.Conv2d(256, self.num_sgs_kernels, kernel_size=1)
+
+        # gating head alpha \in (0,1) to mix DDCW vs SGS
+        self.alpha_head = nn.Conv2d(256, 1, kernel_size=1)
 
         self.last_size = (self.H, self.W)
         self.background = torch.ones(3).cuda()  # Default background color
@@ -178,6 +201,56 @@ class ContinuousGaussian(nn.Module):
         self.feat = self.ps(feat)  # Apply pixel unshuffle to the encoded features
         return self.feat
 
+    def sgs_gaussian_params(self, logits):
+        """
+        ContinuousSR-friendly SGS: map logits over a kernel bank to per-location
+        Cholesky parameters (l1, l2, l3) and opacity.
+
+        logits: [B, K_sgs, H_feat, W_feat]
+        returns:
+            l_chol: [B, H_feat*W_feat, 3]   # (l1, l2, l3)
+            opacity: [B, H_feat*W_feat, 1]
+        """
+        B, K, H, W = logits.shape
+        # convert to probabilities over kernels
+        weights = torch.softmax(logits, dim=1)        # [B, K, H, W]
+        weights = weights.permute(0, 2, 3, 1)         # [B, H, W, K]
+
+        device = logits.device
+        sigma_x_bank = self.sgs_sigma_x.to(device).view(1, 1, 1, K)      # [1,1,1,K]
+        sigma_y_bank = self.sgs_sigma_y.to(device).view(1, 1, 1, K)
+        rho_bank = self.sgs_rho.to(device).view(1, 1, 1, K)
+        opacity_bank = self.sgs_opacity.to(device).view(1, 1, 1, K)
+
+        # weighted parameters per spatial location
+        sigma_x = (weights * sigma_x_bank).sum(dim=-1)       # [B,H,W]
+        sigma_y = (weights * sigma_y_bank).sum(dim=-1)       # [B,H,W]
+        rho = (weights * rho_bank).sum(dim=-1).clamp(-0.99, 0.99)   # [B,H,W]
+        opacity = (weights * opacity_bank).sum(dim=-1)       # [B,H,W]
+
+        # convert (sigma_x, sigma_y, rho) -> Cholesky L parameters
+        # Σ = [[σx^2, ρσxσy], [ρσxσy, σy^2]]
+        # L = [[l1, 0],
+        #      [l2, l3]]  with:
+        #   l1 = σx
+        #   l2 = ρ σy
+        #   l3 = σy * sqrt(1 - ρ^2)
+        eps = 1e-6
+        l1 = sigma_x
+        l2 = rho * sigma_y
+        l3 = sigma_y * torch.sqrt(1.0 - rho ** 2 + eps)
+
+        # flatten to [B, H*W, 1]
+        num_kernels = H * W
+        l1 = l1.view(B, num_kernels, 1)
+        l2 = l2.view(B, num_kernels, 1)
+        l3 = l3.view(B, num_kernels, 1)
+        opacity = opacity.view(B, num_kernels, 1)
+
+        l_chol = torch.cat([l1, l2, l3], dim=-1)   # [B, num_kernels, 3]
+
+        return l_chol, opacity
+
     def query_output(self, inp, scale):
         """
         Generate the high-resolution image output for a given scale.
@@ -190,6 +263,7 @@ class ContinuousGaussian(nn.Module):
             torch.Tensor: High-resolution output image.
         """
         feat = self.feat
+        device = feat.device
 
         # Process the scaling factors
         if scale.shape == (1, 2):  # Handle cases with two scaling factors
@@ -214,84 +288,140 @@ class ContinuousGaussian(nn.Module):
 
         window_size = 1  # Window size for Gaussian position adjustments
         pred = []  # List to store predictions
-        
-	        # Get correct feature shapes
-        bs, c_feat, h_feat, w_feat = self.feat.shape
-        num_kernels = h_feat * w_feat # This is the number of Gaussians, e.g., 17*17=289
 
-        # Flatten features from [B, C, H_feat, W_feat] to [B * H_feat * W_feat, C_feat]
-        # This is the correct way to feed the MLPs.
-        # e.g., [1, 256, 17, 17] -> [289, 256]
-        feat_flat = self.feat.reshape(bs, c_feat, -1).permute(0, 2, 1).reshape(bs * num_kernels, c_feat)
+        # -------------------------------
+        # Shapes and Gaussian count
+        # -------------------------------
+        bs, c_feat, h_feat, w_feat = feat.shape    # [B, 256, H_f, W_f]
+        num_gauss = (lr_h * 2) * (lr_w * 2)        # one Gaussian per HR 2× grid location
 
-        # 1. CGM (Color) Prediction
-        # The buggy code used lr_h and lr_w, resulting in shape [4624, 16]
-        # This correct line uses feat_flat, resulting in shape [289, 256] (for example)
-        color = self.mlp(feat_flat) # Input is [289, 256], MLP in_dim is 256. This works.
-        color = color.reshape(bs, num_kernels, 3) # [B, num_kernels, 3]
+        # -------------------------------
+        # 1) Upsample features to 2× LR grid
+        # -------------------------------
+        # feat_up: [B, 256, 2*lr_h, 2*lr_w]
+        feat_up = F.interpolate(
+            feat, size=(lr_h * 2, lr_w * 2),
+            mode='bilinear', align_corners=False
+        )
 
-        # 2. DDCW (Covariance) Prediction
-        # The buggy code re-used the 'para_c' variable, which was wrong
-        feat_conv = self.leaky_relu(self.conv1(self.feat)) # [B, 512, H_feat, W_feat]
-        
-        # Flatten the conv features
-        # e.g., [1, 512, 17, 17] -> [289, 512]
-        feat_conv_flat = feat_conv.reshape(bs, 512, -1).permute(0, 2, 1).reshape(bs * num_kernels, 512)
-        
-        # Get the device-correct gaussian dictionary
-        gau_dict_device = self.gau_dict.to(feat_conv_flat.device)
+        # Flatten to per-Gaussian 256-dim vectors
+        # feat_flat: [B * num_gauss, 256]
+        feat_flat = feat_up.permute(0, 2, 3, 1).reshape(bs * num_gauss, c_feat)
 
-        vector = self.mlp_vector(gau_dict_device) # [730, 512]
+        # -------------------------------
+        # 2) CGM – color prediction
+        # -------------------------------
+        color = self.mlp(feat_flat)                # [B*num_gauss, 3]
+        color = color.view(bs, num_gauss, 3)       # [B, num_gauss, 3]
 
-        # [B*num_kernels, 512] @ [512, 730] -> [B*num_kernels, 730]
+        # -------------------------------
+        # 3) DDCW – global covariance (Deep Gaussian Prior)
+        # -------------------------------
+        para_c = self.leaky_relu(feat)             # [B, 256, H_f, W_f]
+        feat_conv = self.conv1(para_c)             # [B, 512, H_f, W_f]
+
+        # Upsample conv features to 2× LR grid
+        # feat_conv_up: [B, 512, 2*lr_h, 2*lr_w]
+        feat_conv_up = F.interpolate(
+            feat_conv, size=(lr_h * 2, lr_w * 2),
+            mode='bilinear', align_corners=False
+        )
+
+        # Flatten to [B*num_gauss, 512]
+        feat_conv_flat = feat_conv_up.permute(0, 2, 3, 1).reshape(bs * num_gauss, 512)
+
+        gau_dict_device = self.gau_dict.to(device)         # [N_dict, 3]
+        vector = self.mlp_vector(gau_dict_device)          # [N_dict, 512]
+
+        # para_weights: [B*num_gauss, N_dict]
         para_weights = feat_conv_flat @ vector.t()
-        para_weights = torch.softmax(para_weights, dim=-1) # [B*num_kernels, 730]
-        
-        # [B*num_kernels, 730] @ [730, 3] -> [B*num_kernels, 3]
-        para = para_weights @ gau_dict_device 
-        para = para.reshape(bs, num_kernels, 3) # [B, num_kernels, 3]
+        para_weights = torch.softmax(para_weights, dim=-1)
 
-        # 3. APD (Position) Prediction
-        # The buggy code used the wrong flattened tensor
-        offset = self.mlp_offset(feat_flat) # NEW CORRECT LINE (Input is [289, 256])
-        offset = torch.tanh(offset).reshape(bs, num_kernels, 2)
-	
-        # Generate output predictions for each image in the batch
+        # para_ddcw: [B*num_gauss, 3] -> [B, num_gauss, 3]
+        para_ddcw = para_weights @ gau_dict_device         # [B*num_gauss, 3]
+        para_ddcw = para_ddcw.view(bs, num_gauss, 3)
+
+        # -------------------------------
+        # 4) SGS – local covariance from kernel bank
+        # -------------------------------
+        # logits over SGS kernel bank from LR feature map
+        sgs_logits = self.sgs_logits_head(feat)            # [B, K_sgs, H_f, W_f]
+
+        # Upsample logits to 2× LR grid so we have one kernel per Gaussian
+        sgs_logits = F.interpolate(
+            sgs_logits, size=(lr_h * 2, lr_w * 2),
+            mode='bilinear', align_corners=False
+        )                                                   # [B, K_sgs, 2*lr_h, 2*lr_w]
+
+        # para_sgs: [B, num_gauss, 3], opacity_sgs: [B, num_gauss, 1]
+        para_sgs, opacity_sgs = self.sgs_gaussian_params(sgs_logits)
+
+        # -------------------------------
+        # 5) α-gating – mix DDCW and SGS per location
+        # -------------------------------
+        alpha_logit = self.alpha_head(feat)                 # [B,1,H_f,W_f]
+        alpha_logit = F.interpolate(
+            alpha_logit, size=(lr_h * 2, lr_w * 2),
+            mode='bilinear', align_corners=False
+        )                                                   # [B,1,2*lr_h,2*lr_w]
+
+        alpha = torch.sigmoid(alpha_logit).view(bs, num_gauss, 1)  # [B, num_gauss, 1]
+
+        # final Cholesky params and opacity
+        para    = alpha * para_ddcw + (1.0 - alpha) * para_sgs     # [B, num_gauss, 3]
+        opacity = alpha * 1.0      + (1.0 - alpha) * opacity_sgs   # [B, num_gauss, 1]
+
+        # -------------------------------
+        # 6) APD – position offsets from 256-dim features
+        # -------------------------------
+        offset = self.mlp_offset(feat_flat)                # [B*num_gauss, 2]
+        offset = torch.tanh(offset).view(bs, num_gauss, 2) # [B, num_gauss, 2]
+
+        # -------------------------------
+        # 7) Base coordinates on 2× LR grid
+        # -------------------------------
+        base_xyz = get_coord(lr_h * 2, lr_w * 2).to(device)  # [num_gauss, 2]
+
+        # -------------------------------
+        # 8) Per-batch rendering
+        # -------------------------------
         for i in range(bs):
-            offset_ = offset[i, :, :].squeeze(0)
-            color_ = color[i, :, :].squeeze(0)
-            para_ = para[i, :, :].squeeze(0)
+            offset_i  = offset[i]         # [num_gauss, 2]
+            color_i   = color[i]          # [num_gauss, 3]
+            para_i    = para[i]           # [num_gauss, 3]
+            opacity_i = opacity[i]        # [num_gauss, 1]
 
-            # Generate coordinate grid for the high-resolution image
-            get_xyz = torch.tensor(get_coord(w_feat, h_feat)).reshape(h_feat, w_feat, 2).cuda() # Use h_feat, w_feat
-            get_xyz = get_xyz.reshape(-1, 2)
+            get_xyz = base_xyz
 
             # Adjust coordinates using offsets
-            xyz1 = get_xyz[:, 0:1] + 2 * window_size * offset_[:, 0:1] / lr_w - 1 / W
-            xyz2 = get_xyz[:, 1:2] + 2 * window_size * offset_[:, 1:2] / lr_h - 1 / H
-            get_xyz = torch.cat((xyz1, xyz2), dim=1)
+            xyz1 = get_xyz[:, 0:1] + 2 * window_size * offset_i[:, 0:1] / lr_w - 1.0 / W
+            xyz2 = get_xyz[:, 1:2] + 2 * window_size * offset_i[:, 1:2] / lr_h - 1.0 / H
+            get_xyz_i = torch.cat((xyz1, xyz2), dim=1)      # [num_gauss, 2]
 
             # Adjust Gaussian parameters
-            weighted_cholesky = para_ / 4
-            weighted_opacity = torch.ones(color_.shape[0], 1).cuda()
+            weighted_cholesky = para_i / 4.0                # [num_gauss, 3]
             weighted_cholesky[:, 0] *= scale2
             weighted_cholesky[:, 1] *= scale1
             weighted_cholesky[:, 2] *= scale1
 
             # Perform Gaussian projection and rasterization
             xys, depths, radii, conics, num_tiles_hit = project_gaussians_2d(
-                get_xyz, weighted_cholesky, H, W, self.tile_bounds
+                get_xyz_i, weighted_cholesky, H, W, self.tile_bounds
             )
+
             out_img = rasterize_gaussians_sum(
-                xys, depths, radii, conics, num_tiles_hit, color_, weighted_opacity,
-                H, W, self.BLOCK_H, self.BLOCK_W, background=self.background, return_alpha=False
+                xys, depths, radii, conics, num_tiles_hit,
+                color_i, opacity_i,
+                H, W, self.BLOCK_H, self.BLOCK_W,
+                background=self.background, return_alpha=False
             )
-            out_img = out_img.permute(2, 0, 1).unsqueeze(0)
+            out_img = out_img.permute(2, 0, 1).unsqueeze(0)  # [1,3,H,W]
             pred.append(out_img)
 
         # Combine outputs for the batch
-        out_img = torch.cat(pred)
+        out_img = torch.cat(pred, dim=0)   # [B,3,H,W]
         return out_img
+
 
     def forward(self, inp, scale):
         """

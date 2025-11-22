@@ -3,8 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import torchvision.utils as vutils
 import time
-import argparse # <--- Added this import
+import argparse
 from argparse import Namespace
 import os
 
@@ -140,6 +141,50 @@ def train_model(epochs=100, batch_size=4, lr=1e-4, div2k_hr_path=None, num_worke
             # 8. Forward Pass
             optimizer.zero_grad()
             pred_batch = model(lr_batch, scale_tensor)
+
+            # Inspect training signals
+            with torch.no_grad():
+                # Alpha monitoring
+                alpha_map = torch.sigmoid(model.alpha_head(model.feat))
+
+                # SGS monitoring
+                sgs_logits = model.sgs_logits_head(model.feat)
+
+                # DDCW monitoring
+                feat_conv = model.conv1(model.leaky_relu(model.feat))
+
+                # ----- FIXED APD MONITOR -----
+                bs, c_feat, h_feat, w_feat = model.feat.shape
+                lr_h = lr_batch.shape[-2]
+                lr_w = lr_batch.shape[-1]
+
+                # upsample to 2× LR grid (same as query_output)
+                feat_up = F.interpolate(
+                    model.feat, size=(lr_h * 2, lr_w * 2),
+                    mode='bilinear', align_corners=False
+                )                                    # [B, 256, 2*lr_h, 2*lr_w]
+
+                num_gauss = (lr_h * 2) * (lr_w * 2)
+
+                # flatten exactly like model.query_output
+                feat_flat = feat_up.permute(0, 2, 3, 1).reshape(bs * num_gauss, 256)
+
+                offset = torch.tanh(model.mlp_offset(feat_flat))
+
+            if (i % 200 == 0):  # every N steps
+                # Save alpha map
+                alpha_vis = alpha_map[0].detach().cpu()
+                vutils.save_image(alpha_vis, f"alpha_epoch{epoch}_step{i}.png")
+
+                # Save SGS softmax for first 8 kernels as 8 separate grayscale images
+                sgs_probs = torch.softmax(sgs_logits, dim=1)[0, :8, :, :]  # [8, H, W]
+                sgs_probs = sgs_probs.unsqueeze(1)                         # [8, 1, H, W]
+                vutils.save_image(
+                    sgs_probs,
+                    f"sgs_epoch{epoch}_step{i}.png",
+                    nrow=4,            # 4x2 grid of kernels
+                    normalize=True
+                )
             
             # 9. Calculate Loss
             # Ensure predicted batch and HR batch are the same size
@@ -162,6 +207,12 @@ def train_model(epochs=100, batch_size=4, lr=1e-4, div2k_hr_path=None, num_worke
                 steps_per_sec = 20.0 / step_time
                 print(f"[Epoch {epoch+1}/{epochs}] [Step {i+1}/{len(dataloader)}] "
                       f"Loss: {loss.item():.4f} | Steps/sec: {steps_per_sec:.2f}")
+            if i == 0:
+                print(f"[Epoch {epoch+1}] "
+                    f"alpha={alpha_map.mean():.4f}, "
+                    f"sgs={sgs_logits.mean():.4f}, "
+                    f"ddcw={feat_conv.mean():.4f}, "
+                    f"apd={offset.mean():.4f}")
 
         epoch_loss = running_loss / len(dataloader)
         epoch_time = time.time() - epoch_start_time
